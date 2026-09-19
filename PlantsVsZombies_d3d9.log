@@ -1,0 +1,24 @@
+info:  Game: PlantsVsZombies.exe
+info:  DXVK: v1.10.3
+info:  Built-in extension providers:
+info:    Win32 WSI
+info:    OpenVR
+info:    OpenXR
+info:  OpenVR: could not open registry key, status 2
+info:  OpenVR: Failed to locate module
+info:  Enabled instance extensions:
+info:    VK_KHR_get_surface_capabilities2
+info:    VK_KHR_surface
+info:    VK_KHR_win32_surface
+info:  D3D9: VK_FORMAT_D16_UNORM_S8_UINT -> VK_FORMAT_D24_UNORM_S8_UINT
+info:  Wrapper(Turnip Adreno (TM) 610):
+info:    Driver: 26.0.99
+info:    Vulkan: 1.3.346
+info:    Memory Heap[0]: 
+info:      Size: 16384 MiB
+info:      Flags: 0x1
+info:      Memory Type[0]: Property Flags = 0x7
+info:      Memory Type[1]: Property Flags = 0xf
+info:      Memory Type[2]: Property Flags = 0xb
+info:      Memory Type[3]: Property Flags = 0x11
+info:  Process set as DPI aware

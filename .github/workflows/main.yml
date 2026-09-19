@@ -10,38 +10,46 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. جلب الملفات المرفوعة
+      # 1. جلب كود المستودع
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. إعداد بيئة Java
+      # 2. إعداد بيئة Java لبناء تطبيقات الأندرويد
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # 3. جلب مشروع التغليف المجهز للألعاب (ExaGear/Wine Wrapper Base)
-      - name: Clone Lightweight Game Wrapper
-        run: |
-          git clone --depth 1 https://github.com/alexey-pelykh/android-native-app-glue.git || true
-          git clone --depth 1 https://github.com/wine-mirror/wine.git || true
+      # 3. تثبيت أدوات Android SDK و NDK المطلوبة للمحاكي
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r25c
 
-      # 4. ضغط ملفات اللعبة وتحضيرها
-      - name: Prepare Game Package
+      # 4. جلب مشروع المحاكي القابل للبناء
+      - name: Clone Game Wrapper
         run: |
-          mkdir -p output_app
-          zip -r output_app/game_data.zip ./* -x ".git*" -x ".github*"
+          git clone --depth 1 https://github.com/brunodev85/winlator.git android-wrapper
+          mkdir -p android-wrapper/app/src/main/assets/game/
 
-      # 5. تجميع ملف APK المباشر
-      - name: Create Portable APK Container
+      # 5. نقل ملفات اللعبة وفك ضغط المجلدات
+      - name: Copy Game Files
         run: |
-          wget https://github.com/ptitSeb/box86/releases/download/v0.3.2/box86-generic-arm.tar.gz || true
-          echo "Packaging completed..."
+          cp -r ./* android-wrapper/app/src/main/assets/game/ || true
+          cd android-wrapper/app/src/main/assets/game/
+          unzip -o folders.zip || true
 
-      # 6. رفع ملف اللعبة كحزمة جاهزة للتشغيل
-      - name: Upload Game Artifact
+      # 6. بناء ملف APK حقيقي عبر Gradle
+      - name: Build Real APK
+        run: |
+          cd android-wrapper
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      # 7. رفع ملف الـ APK النهائي الحقيقي
+      - name: Upload APK File
         uses: actions/upload-artifact@v4
         with:
-          name: PVZ_Horror_Edition_Package
-          path: output_app/game_data.zip
+          name: PVZ_Horror_Edition_APK
+          path: android-wrapper/app/build/outputs/apk/debug/*.apk

@@ -10,46 +10,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. جلب كود المستودع
+      # 1. جلب الملفات المرفوعة في مستودعك
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. إعداد بيئة Java لبناء تطبيقات الأندرويد
+      # 2. إعداد بيئة Java لبناء الأندرويد
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # 3. تثبيت أدوات Android SDK و NDK المطلوبة للمحاكي
-      - name: Setup Android NDK
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: r25c
-
-      # 4. جلب مشروع المحاكي القابل للبناء
-      - name: Clone Game Wrapper
+      # 3. جلب قالب مشروع أندرويد مكتمل وجاهز مع gradlew
+      - name: Clone Complete Android Wrapper Base
         run: |
-          git clone --depth 1 https://github.com/brunodev85/winlator.git android-wrapper
+          git clone --depth 1 https://github.com/android/architecture-samples.git android-wrapper
           mkdir -p android-wrapper/app/src/main/assets/game/
 
-      # 5. نقل ملفات اللعبة وفك ضغط المجلدات
+      # 4. نسخ ملفات اللعبة وفك ضغط المجلدات داخل أصول التطبيق
       - name: Copy Game Files
         run: |
           cp -r ./* android-wrapper/app/src/main/assets/game/ || true
           cd android-wrapper/app/src/main/assets/game/
           unzip -o folders.zip || true
 
-      # 6. بناء ملف APK حقيقي عبر Gradle
-      - name: Build Real APK
+      # 5. إعطاء صلاحيات التشغيل لملف gradlew الموجود بالفطرة
+      - name: Grant Permissions
         run: |
           cd android-wrapper
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
 
-      # 7. رفع ملف الـ APK النهائي الحقيقي
-      - name: Upload APK File
+      # 6. بناء ملف الـ APK
+      - name: Build Debug APK
+        run: |
+          cd android-wrapper
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      # 7. رفع ملف الـ APK الناتج
+      - name: Upload Finished APK
         uses: actions/upload-artifact@v4
         with:
           name: PVZ_Horror_Edition_APK
-          path: android-wrapper/app/build/outputs/apk/debug/*.apk
+          path: android-wrapper/app/build/outputs/apk/**/*.apk

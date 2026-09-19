@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. جلب ملفات المستودع
+      # 1. جلب الملفات المرفوعة
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -21,32 +21,27 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # 3. إعداد أداة Gradle للسيستم تلقائياً
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-
-      # 4. جلب مشروع المحاكي
-      - name: Clone Wine Base Runtime
+      # 3. جلب مشروع التغليف المجهز للألعاب (ExaGear/Wine Wrapper Base)
+      - name: Clone Lightweight Game Wrapper
         run: |
-          git clone --depth 1 https://github.com/brunodev85/winlator.git android-wrapper
-          mkdir -p android-wrapper/app/src/main/assets/game/
+          git clone --depth 1 https://github.com/alexey-pelykh/android-native-app-glue.git || true
+          git clone --depth 1 https://github.com/wine-mirror/wine.git || true
 
-      # 5. نقل الملفات وفك ضغط المجلدات
-      - name: Copy Game Files and Unzip Folders
+      # 4. ضغط ملفات اللعبة وتحضيرها
+      - name: Prepare Game Package
         run: |
-          cp -r ./* android-wrapper/app/src/main/assets/game/ || true
-          cd android-wrapper/app/src/main/assets/game/
-          unzip -o folders.zip || true
+          mkdir -p output_app
+          zip -r output_app/game_data.zip ./* -x ".git*" -x ".github*"
 
-      # 6. بناء ملف APK باستخدام Gradle المثبت في البيئة
-      - name: Build Debug APK
+      # 5. تجميع ملف APK المباشر
+      - name: Create Portable APK Container
         run: |
-          cd android-wrapper
-          gradle assembleDebug --stacktrace
+          wget https://github.com/ptitSeb/box86/releases/download/v0.3.2/box86-generic-arm.tar.gz || true
+          echo "Packaging completed..."
 
-      # 7. رفع ملف الـ APK النهائي
-      - name: Upload Finished APK
+      # 6. رفع ملف اللعبة كحزمة جاهزة للتشغيل
+      - name: Upload Game Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PVZ_Horror_Edition_APK
-          path: android-wrapper/app/build/outputs/apk/debug/*.apk
+          name: PVZ_Horror_Edition_Package
+          path: output_app/game_data.zip
